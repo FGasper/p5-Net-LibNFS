@@ -1,0 +1,6 @@
+[submodule "easyxs"]
+	path = easyxs
+	url = https://github.com/FGasper/easyxs
+[submodule "libnfs"]
+	path = libnfs
+	url = https://github.com/sahlberg/libnfs
