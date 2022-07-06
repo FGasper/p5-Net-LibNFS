@@ -341,10 +341,10 @@ sub mount_getexports {
 
     my $rpc = Net::LibNFS::RPC->new();
 
-    my $io = (ref $self->{'io'})->new($rpc);
+    my $rpc_io = (ref $self->{'io'})->new($rpc);
 
-    return $io->act($rpc, _async_mount_getexports => $server)->finally(
-        sub { undef $io },
+    return $rpc_io->act($rpc, _async_mount_getexports => $server)->finally(
+        sub { undef $rpc_io },
     );
 }
 
