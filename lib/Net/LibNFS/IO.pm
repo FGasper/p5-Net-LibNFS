@@ -21,11 +21,24 @@ sub new {
     # we’ve started polling or not.
     return bless {
         $class->_PARSE_NEW_EXTRA(@extra),
-        nfs => $nfs, pid => $$,
+        nfs => $nfs,
+        pid => $$,
     }, $class;
 }
 
+# ----------------------------------------------------------------------
+# Subclass interface:
+
 sub _PARSE_NEW_EXTRA { }
+
+sub _CLONE_ARGS { }
+
+sub _nfs { $_[0]{'nfs'} }
+
+sub _fd { $_[0]{'nfs'}->_get_fd() }
+
+# End subclass interface
+#----------------------------------------------------------------------
 
 #----------------------------------------------------------------------
 # DESIGN NOTE: All _async_* functions accept a list of args, the last of
@@ -33,6 +46,12 @@ sub _PARSE_NEW_EXTRA { }
 # receives two args: the success payload, and the error. This module is
 # where we translate that into a promise and its resolution or rejection.
 #----------------------------------------------------------------------
+
+sub clone {
+    my ($self, $nfs) = @_;
+
+    return (ref $self)->new($nfs, $self->_CLONE_ARGS());
+}
 
 sub act {
     my ($self, $nfs_ish, $funcname, @args) = @_;
@@ -60,7 +79,10 @@ sub act {
 
     $deferreds_hr->{$d} = $d;
 
-    $self->start_io_if_needed();
+    $self->{'_io_started'} ||= do {
+        $self->start_io();
+        1;
+    };
 
     return $d->promise();
 }

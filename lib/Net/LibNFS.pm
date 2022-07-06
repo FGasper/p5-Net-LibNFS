@@ -206,7 +206,7 @@ sub _create_async {
     local ($@, $!);
     require Net::LibNFS::Async;
 
-    return Net::LibNFS::Async->_new($self, $io_class);
+    return Net::LibNFS::Async->_new($self, $io_class, @io_args);
 }
 
 #----------------------------------------------------------------------

@@ -27,7 +27,7 @@ sub resume {
 
         $$watch_sr = AnyEvent->io(
             poll => 'r',
-            fh => $self->{'fd'},
+            fh => $self->_fd(),
             cb => sub {
                 $weak_self->_service(Net::LibNFS::_POLLIN);
             },
@@ -37,32 +37,25 @@ sub resume {
     return $self;
 }
 
-sub start_io_if_needed {
+sub start_io {
     my ($self) = @_;
 
-    if (!$self->{'fd'}) {
-        my $nfs = $self->{'nfs'};
+    my $weak_self = $self;
+    Scalar::Util::weaken($weak_self);
 
-        my %watches;
-
-        $self->{'fd'} = $nfs->_get_fd();
-        $self->{'watches'} = \%watches;
-
-        my $weak_self = $self;
-        Scalar::Util::weaken($weak_self);
-
-        $watches{'timer'} = AnyEvent->timer(
+    $self->{'watches'} = {
+        timer => AnyEvent->timer(
             after => $self->_TIMER_INTERVAL(),
             interval => $self->_TIMER_INTERVAL(),
             cb => sub {
                 $weak_self->_service(0);
             },
-        );
+        ),
+    };
 
-        $self->resume();
+    $self->resume();
 
-        $self->_poll_write_if_needed();
-    }
+    $self->_poll_write_if_needed();
 
     return;
 }
@@ -80,24 +73,32 @@ sub _stop {
 sub _poll_write_if_needed {
     my ($self) = @_;
 
-    if ($self->{'nfs'}->_which_events() & Net::LibNFS::_POLLOUT) {
+    if ($self->_nfs()->_which_events() & Net::LibNFS::_POLLOUT) {
         $self->{'watches'}{'write'} ||= do {
-            my $nfs = $self->{'nfs'};
+            my $fd = $self->_fd();
 
-            my $weak_self = $self;
-            Scalar::Util::weaken($weak_self);
+            # In certain cases we end up with a POLLOUT request from
+            # an NFS or RPC instance that is finished. When that happens
+            # just ignore it.
+            #
+            if ($fd >= 0) {
+                my $nfs = $self->_nfs();
 
-            AnyEvent->io(
-                poll => 'w',
-                fh => $self->{'fd'},
-                cb => sub {
-                    $weak_self->_service(Net::LibNFS::_POLLOUT);
+                my $weak_self = $self;
+                Scalar::Util::weaken($weak_self);
 
-                    if (!($nfs->_which_events() & Net::LibNFS::_POLLOUT)) {
-                        undef $weak_self->{'watches'}{'write'};
-                    }
-                },
-            );
+                AnyEvent->io(
+                    poll => 'w',
+                    fh => $fd,
+                    cb => sub {
+                        $weak_self->_service(Net::LibNFS::_POLLOUT);
+
+                        if (!($nfs->_which_events() & Net::LibNFS::_POLLOUT)) {
+                            undef $weak_self->{'watches'}{'write'};
+                        }
+                    },
+                );
+            }
         };
     }
 

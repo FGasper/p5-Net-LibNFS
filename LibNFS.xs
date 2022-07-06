@@ -12,10 +12,6 @@
 #   include <sys/time.h>
 #endif
 
-#include <nfsc/libnfs.h>
-#include <nfsc/libnfs-raw.h>
-#include <nfsc/libnfs-raw-mount.h>
-
 // Windows lacks poll.h; these come from libnfs’s compat header.
 #ifndef POLLIN
 #   ifdef _WIN32
@@ -26,10 +22,14 @@
 #   endif
 #endif
 
+#include <nfsc/libnfs.h>
+#include <nfsc/libnfs-raw.h>
+#include <nfsc/libnfs-raw-mount.h>
+
 #ifndef F_RDLCK
 #include <fcntl.h>
 
-// Windows has fcntl.h, but it doesn’t provide the lock constants:
+// Strawberry does *not* seem to provide F_RDLCK & friends, though.
 #ifndef F_RDLCK
 #define F_RDLCK 0
 #define F_WRLCK 1
@@ -143,7 +143,7 @@ typedef struct {
     bool closed;
 } nlnfs_dh_s;
 
-typedef SV* (*_cb_parser) (pTHX_ const char*, int, void *, SV**, void*);
+typedef SV* (*_cb_parser) (pTHX_ void*, const char*, int, void *, SV**, void*);
 
 typedef struct {
 #ifdef MULTIPLICITY
@@ -177,6 +177,7 @@ SV* _ptr_to_perl_dirent_obj(pTHX_ struct nfsdirent* dent) {
 }
 
 static void __do_perl_callback_internal(
+    void* nfs_or_rpc,
     int err,
     void *data,
     void *private_data
@@ -189,7 +190,7 @@ static void __do_perl_callback_internal(
 
     SV* err_sv = NULL;
 
-    SV* result = cb_sp->parser(aTHX_ cb_sp->funcname, err, data, &err_sv, cb_sp->arg);
+    SV* result = cb_sp->parser(aTHX_ nfs_or_rpc, cb_sp->funcname, err, data, &err_sv, cb_sp->arg);
 
     SV* args[] = {
         result,
@@ -214,9 +215,8 @@ static void _do_perl_rpc_callback (
     void* data,
     void* private_data
 ) {
-    PERL_UNUSED_ARG(rpc);
 
-    return __do_perl_callback_internal(status, data, private_data);
+    return __do_perl_callback_internal(rpc, status, data, private_data);
 }
 
 static void _do_perl_callback (
@@ -225,9 +225,7 @@ static void _do_perl_callback (
     void *data,
     void *private_data
 ) {
-    PERL_UNUSED_ARG(nfs);
-
-    return __do_perl_callback_internal(err, data, private_data);
+    return __do_perl_callback_internal(nfs, err, data, private_data);
 }
 
 // snagged from Net::Libwebsockets:
@@ -262,19 +260,29 @@ static SV* _create_err_obj (pTHX_ const char* type, unsigned argscount, ...) {
     );
 }
 
-static SV* _create_nfs_errno (pTHX_ const char* funcname, int error, const char* errstr) {
+static SV* _create_nfs_errno (pTHX_ struct nfs_context* nfs, const char* funcname, int error, const char* errstr) {
+
+    const char* errstr2 = errstr ? errstr : nfs_get_error(nfs);
+
     return _create_err_obj(aTHX_ "NFSError", 3,
         newSVpv(funcname, 0),
         newSViv(-error),
-        newSVpv(errstr, 0)
+        newSVpv(errstr2, 0)
     );
+}
+
+static SV* _create_rpc_errno (pTHX_ struct rpc_context* rpc, const char* funcname, int error, const char* errstr) {
+
+    const char* errstr2 = errstr ? errstr : rpc_get_error(rpc);
+
+    return _create_nfs_errno(aTHX_ NULL, funcname, error, errstr2);
 }
 
 static void _croak_nfs_errno (pTHX_ struct nfs_context* nfs, const char* funcname, int error, const char* errstr) {
 
     const char* str = errstr ? errstr : nfs_get_error(nfs);
 
-    croak_sv( _create_nfs_errno(aTHX_ funcname, error, str) );
+    croak_sv( _create_nfs_errno(aTHX_ nfs, funcname, error, str) );
 }
 
 unsigned _count_exports( struct exportnode* node ) {
@@ -444,13 +452,13 @@ static SV* _create_perl_dh(pTHX_ SV* self_sv, struct nfsdir *nfsdh) {
 
 // ----------------------------------------------------------------------
 
-static SV* _parse_mount_getexports (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_mount_getexports (pTHX_ void* rpc, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     PERL_UNUSED_ARG(arg);
 
     SV* retval;
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_rpc_errno(aTHX_ rpc, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -474,13 +482,13 @@ static SV* _parse_mount_getexports (pTHX_ const char* funcname, int err, void *d
     return retval;
 }
 
-static SV* _parse_readlink_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_readlink_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     PERL_UNUSED_ARG(arg);
 
     SV* retval;
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -490,23 +498,23 @@ static SV* _parse_readlink_async (pTHX_ const char* funcname, int err, void *dat
     return retval;
 }
 
-static SV* _parse_fallible_empty_return (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_fallible_empty_return (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     PERL_UNUSED_ARG(arg);
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
     }
 
     return &PL_sv_undef;
 }
 
-static SV* _parse_stat64_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_stat64_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     PERL_UNUSED_ARG(arg);
 
     SV* retval;
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -517,13 +525,13 @@ static SV* _parse_stat64_async (pTHX_ const char* funcname, int err, void *data,
     return retval;
 }
 
-static SV* _parse_statvfs64_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_statvfs64_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     PERL_UNUSED_ARG(arg);
 
     SV* retval;
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -534,13 +542,13 @@ static SV* _parse_statvfs64_async (pTHX_ const char* funcname, int err, void *da
     return retval;
 }
 
-static SV* _parse_open_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_open_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     SV* perl_nfs_sv = arg;
 
     SV* retval;
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -553,13 +561,13 @@ static SV* _parse_open_async (pTHX_ const char* funcname, int err, void *data, S
     return retval;
 }
 
-static SV* _parse_opendir_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_opendir_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     SV* perl_nfs_sv = arg;
 
     SV* retval;
 
     if (err) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -572,13 +580,13 @@ static SV* _parse_opendir_async (pTHX_ const char* funcname, int err, void *data
     return retval;
 }
 
-static SV* _parse_read_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_read_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     PERL_UNUSED_ARG(arg);
 
     SV* retval;
 
     if (err < 0) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -590,11 +598,11 @@ static SV* _parse_read_async (pTHX_ const char* funcname, int err, void *data, S
     return retval;
 }
 
-static SV* _parse_write_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_write_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     SV* retval;
 
     if (err < 0) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -604,11 +612,11 @@ static SV* _parse_write_async (pTHX_ const char* funcname, int err, void *data, 
     return retval;
 }
 
-static SV* _parse_lseek_async (pTHX_ const char* funcname, int err, void *data, SV** err_sv, void* arg) {
+static SV* _parse_lseek_async (pTHX_ void* nfs, const char* funcname, int err, void *data, SV** err_sv, void* arg) {
     SV* retval;
 
     if (err < 0) {
-        *err_sv = _create_nfs_errno(aTHX_ funcname, err, data);
+        *err_sv = _create_nfs_errno(aTHX_ nfs, funcname, err, data);
         retval = &PL_sv_undef;
     }
     else {
@@ -1894,7 +1902,7 @@ _async_mount_getexports (SV* self_sv, SV* server_sv, SV* cb)
 
         if (err) {
             const char* str = rpc_get_error(rpc);
-            croak_sv( _create_nfs_errno(aTHX_ funcname, err, str) );
+            croak_sv( _create_rpc_errno(aTHX_ rpc, funcname, err, str) );
         }
 
 int
