@@ -3,7 +3,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
-#include <sys/time.h>
+
+// For some reason sys/time.h causes funky arrow-pointer errors
+// in Strawberry Perl …
+#ifdef _WIN32
+#   include <time.h>
+#else
+#   include <sys/time.h>
+#endif
 
 #include <nfsc/libnfs.h>
 #include <nfsc/libnfs-raw.h>
