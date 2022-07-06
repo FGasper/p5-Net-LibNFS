@@ -147,6 +147,7 @@ sub postamble {
         -D => qq/CMAKE_C_FLAGS='@cflags'/,
         -D => qq/BUILD_SHARED_LIBS=OFF/,
         -D => qq/CMAKE_INSTALL_PREFIX=$STATIC_INSTALL_DIR/,
+        -D => qq/CMAKE_MAKE_PROGRAM=$Config{make}/,
     );
 
     if ($^O eq 'MSWin32') {

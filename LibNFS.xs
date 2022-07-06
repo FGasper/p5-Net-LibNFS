@@ -9,17 +9,18 @@
 #include <nfsc/libnfs-raw.h>
 #include <nfsc/libnfs-raw-mount.h>
 
-// libnfs includes definitions for POLLIN/POLLOUT on the needed platforms;
-// however, Strawberry Perl seems to provide its own POLLIN.
-
-#ifndef POLLIN
+// Windows lacks poll.h; these come from libnfs’s compat header.
+#ifdef _WIN32
+#define POLLIN 0x0001
+#define POLLOUT 0x0004
+#else
 #include <poll.h>
 #endif
 
 #ifndef F_RDLCK
 #include <fcntl.h>
 
-// Strawberry does *not* seem to provide F_RDLCK & friends, though.
+// Windows has fcntl.h, but it doesn’t provide the lock constants:
 #ifndef F_RDLCK
 #define F_RDLCK 0
 #define F_WRLCK 1
