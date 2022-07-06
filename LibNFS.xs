@@ -10,11 +10,13 @@
 #include <nfsc/libnfs-raw-mount.h>
 
 // Windows lacks poll.h; these come from libnfs’s compat header.
-#ifdef _WIN32
-#define POLLIN 0x0001
-#define POLLOUT 0x0004
-#else
-#include <poll.h>
+#ifndef POLLIN
+#   ifdef _WIN32
+#       define POLLIN 0x0001
+#       define POLLOUT 0x0004
+#   else
+#       include <poll.h>
+#   endif
 #endif
 
 #ifndef F_RDLCK
