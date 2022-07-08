@@ -104,6 +104,19 @@ sub _service {
     }
 }
 
+sub _poll_write_if_needed {
+    my ($self) = @_;
+
+    if ($self->_nfs()->_which_events() & Net::LibNFS::_POLLOUT) {
+
+        # In certain cases we end up with a POLLOUT request from
+        # an NFS or RPC instance that is finished. When that happens
+        # just ignore it.
+        #
+        $self->_poll_write() if $self->_fd() >= 0;
+    }
+}
+
 #----------------------------------------------------------------------
 # Privates:
 

@@ -70,37 +70,29 @@ sub _stop {
     return;
 }
 
-sub _poll_write_if_needed {
+sub _poll_write {
     my ($self) = @_;
 
-    if ($self->_nfs()->_which_events() & Net::LibNFS::_POLLOUT) {
-        $self->{'watches'}{'write'} ||= do {
-            my $fd = $self->_fd();
+    $self->{'watches'}{'write'} ||= do {
+        my $fd = $self->_fd();
 
-            # In certain cases we end up with a POLLOUT request from
-            # an NFS or RPC instance that is finished. When that happens
-            # just ignore it.
-            #
-            if ($fd >= 0) {
-                my $nfs = $self->_nfs();
+        my $nfs = $self->_nfs();
 
-                my $weak_self = $self;
-                Scalar::Util::weaken($weak_self);
+        my $weak_self = $self;
+        Scalar::Util::weaken($weak_self);
 
-                AnyEvent->io(
-                    poll => 'w',
-                    fh => $fd,
-                    cb => sub {
-                        $weak_self->_service(Net::LibNFS::_POLLOUT);
+        AnyEvent->io(
+            poll => 'w',
+            fh => $fd,
+            cb => sub {
+                $weak_self->_service(Net::LibNFS::_POLLOUT);
 
-                        if (!($nfs->_which_events() & Net::LibNFS::_POLLOUT)) {
-                            undef $weak_self->{'watches'}{'write'};
-                        }
-                    },
-                );
-            }
-        };
-    }
+                if (!($nfs->_which_events() & Net::LibNFS::_POLLOUT)) {
+                    undef $weak_self->{'watches'}{'write'};
+                }
+            },
+        );
+    };
 
     return;
 }

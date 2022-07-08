@@ -12,7 +12,7 @@ use Net::LibNFS::X;
 use IO::Async::Handle ();
 use IO::Async::Timer::Periodic ();
 
-use parent 'Net::LibNFS::IO';
+use parent 'Net::LibNFS::IO::Contextual';
 
 my $LOOP_BASE_CLASS = 'IO::Async::Loop';
 
@@ -57,17 +57,7 @@ sub resume {
         $reader->want_readready(1);
     }
     else {
-        my $fd = $self->_fd();
-
-        # Normally we want to prevent Perl from close()ing the file descriptor
-        # so that libnfs doesn’t get upset over its file descriptor being
-        # “taken away”. As it happens, though, libnfs doesn’t seem to “mind”,
-        # and it simplifies the code here a bit. (The POSIX::dup() trick
-        # actually breaks it .. ??)
-
-        open my $fh, "+>>&=$fd" or do {
-            Carp::croak "Falied to adopt FD $fd: $!";
-        };
+        my $fh = $self->_create_fh();
 
         my $weak_self = $self;
         Scalar::Util::weaken($weak_self);
@@ -121,14 +111,8 @@ sub _CLONE_ARGS {
     return $_[0]{'loop'};
 }
 
-sub _poll_write_if_needed {
-    my ($self) = @_;
-
-    if ($self->_nfs()->_which_events() & Net::LibNFS::_POLLOUT) {
-        $self->{'io_handle'}->want_writeready(1);
-    }
-
-    return;
+sub _poll_write {
+    $_[0]{'io_handle'}->want_writeready(1);
 }
 
 sub _stop {
@@ -144,14 +128,6 @@ sub _stop {
     }
 
     return;
-}
-
-sub DESTROY {
-    my $self = shift;
-
-    $self->_stop();
-
-    return $self->SUPER::DESTROY();
 }
 
 1;
