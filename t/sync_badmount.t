@@ -10,10 +10,6 @@ use Test::Deep;
 
 use Net::LibNFS ();
 
-eval { require AnyEvent } or do {
-    plan skip_all => $@;
-};
-
 my $nfs = Net::LibNFS->new();
 
 my $err = exception {
