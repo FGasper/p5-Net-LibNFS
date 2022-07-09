@@ -279,5 +279,7 @@ libnfs/win32/win32build.bat
 libnfs/win32build.bat
 t/anyevent_badmount.t
 t/basic.t
+t/ioasync_badmount.t
+t/mojo_badmount.t
 t/sync_badmount.t
 typemap
