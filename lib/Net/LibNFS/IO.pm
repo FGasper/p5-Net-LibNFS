@@ -7,6 +7,8 @@ use parent 'Net::LibNFS::LeakDetector';
 
 use Promise::XS ();
 
+use Net::LibNFS::X ();
+
 use constant {
     _DEBUG => 1,
 

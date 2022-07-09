@@ -22,7 +22,9 @@ lib/Net/LibNFS/Dirhandle.pm
 lib/Net/LibNFS/Filehandle.pm
 lib/Net/LibNFS/IO.pm
 lib/Net/LibNFS/IO/AnyEvent.pm
+lib/Net/LibNFS/IO/Contextual.pm
 lib/Net/LibNFS/IO/IOAsync.pm
+lib/Net/LibNFS/IO/Mojo.pm
 lib/Net/LibNFS/LeakDetector.pm
 lib/Net/LibNFS/Stat.pm
 lib/Net/LibNFS/StatVFS.pm

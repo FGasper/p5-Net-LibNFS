@@ -1,4 +1,4 @@
-package Net::LibNFS::IO::IOAsync;
+package Net::LibNFS::IO::Mojo;
 
 use strict;
 use warnings;
@@ -36,7 +36,7 @@ sub start_io {
 sub pause {
     my ($self) = @_;
 
-    if (my $watch = $self->{'watch'}) {
+    if ($self->{'_fh'}) {
         $self->{'_want_read'} = 0;
         $self->_sync_watch();
     }
@@ -47,12 +47,10 @@ sub pause {
 sub resume {
     my ($self) = @_;
 
-    if (my $watch = $self->{'watch'}) {
-        $self->{'_want_read'} = 1;
-        $self->_sync_watch();
-    }
-    else {
-        $self->{'_fh'} = $self->_create_fh;
+    $self->{'_want_read'} = 1;
+
+    if (!$self->{'_fh'}) {
+        $self->{'_fh'} = $self->_create_fh();
 
         my $weak_self = $self;
         Scalar::Util::weaken($weak_self);
@@ -72,11 +70,13 @@ sub resume {
 
                 if (!($nfs->_which_events() & Net::LibNFS::_POLLOUT)) {
                     $weak_self->{'_want_write'} = 0;
-                    $self->_sync_watch();
+                    $weak_self->_sync_watch();
                 }
             },
         );
     }
+
+    $self->_sync_watch();
 
     return;
 }
@@ -85,6 +85,8 @@ sub resume {
 
 sub _sync_watch {
     my ($self) = @_;
+
+    # printf "FD %d: read? %d, write? %d\n", map { $_ // 0 } @{$self}{'_fh', '_want_read', '_want_write'};
 
     $self->{'reactor'}->watch(
         @{$self}{'_fh', '_want_read', '_want_write'},
@@ -128,7 +130,7 @@ sub _stop {
         $self->{'reactor'}->remove($timer);
     }
 
-    if (my $fh = $self->{'_fh'}) {
+    if (my $fh = delete $self->{'_fh'}) {
         $self->{'reactor'}->remove($fh);
     }
 

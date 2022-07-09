@@ -22,7 +22,7 @@ sub _create_fh {
         Carp::croak "Falied to adopt FD $fd: $!";
     };
 
-    return;
+    return $fh;
 }
 
 sub DESTROY {
