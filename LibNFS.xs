@@ -1334,6 +1334,8 @@ _async_open (SV* self_sv, SV* path_sv, SV* flags_sv, SV* mode_sv, SV* cb)
             _croak_nfs_errno(aTHX_ perl_nfs->nfs, "open", err, NULL);
         }
 
+        // Increment self_sv’s refcount because it’s part of
+        // the callback struct. _parse_open_async() will free this up.
         SvREFCNT_inc(self_sv);
 
 SV*
