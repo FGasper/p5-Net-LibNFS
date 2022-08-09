@@ -45,6 +45,10 @@ if ($use_dynamic) {
     print "    cflags: $cflags\n";
 
     push @link_args, ( LIBS => $pc_ldflags );
+
+    if ($^O !~ /^(MSWin32|darwin|solaris)$/ && ($Config{ld} =~ /gcc|g\+\+/ ||     $Config{gccversion})) {
+       push @link_args, (LDDLFLAGS => "$Config{lddlflags} -Wl,--exclude-libs,ALL");
+    }
 }
 else {
     print "I found no usable shared libnfs, so I’ll try to make a static one.\n";
