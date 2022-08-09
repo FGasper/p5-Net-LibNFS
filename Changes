@@ -1,6 +1,6 @@
 Revision history for Perl extension Net::LibNFS:
 
-0.03
+0.03 Tue 9 Aug 2022
 - Add support for auxiliary GIDs.
 
 0.02 Sat 16 Jul 2022
