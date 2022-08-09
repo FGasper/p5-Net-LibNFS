@@ -255,7 +255,7 @@ jobs:
         uses: egor-tensin/setup-cygwin@v3
         with:
             platform: x64
-            packages: perl_base perl-ExtUtils-MakeMaker make gcc-g++ libcrypt-devel libnsl-devel bash libnfs cmake
+            packages: perl_base perl-ExtUtils-MakeMaker make gcc-g++ libcrypt-devel libnsl-devel bash libnfs cmake pkgconf
       - uses: actions/checkout@main
         with:
             submodules: recursive

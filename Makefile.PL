@@ -42,7 +42,7 @@ my $STATIC_INSTALL_DIR = do {
 };
 
 if ($use_dynamic) {
-    print "I found a shared libnfs, so I’ll use it:\n";
+    print "I found a suitable shared libnfs, so I’ll use it:\n";
     print "    libs: $pc_ldflags\n";
     print "    cflags: $cflags\n";
 
