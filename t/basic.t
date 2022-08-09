@@ -62,7 +62,7 @@ use Test::Fatal;
     ok( !$err, 'set() u64 values' ) or diag $err;
 
     #----------------------------------------------------------------------
-    $err = exception { $obj->set( auxiliary_gids => [123, 234] ) };
+    $err = exception { $obj->set( unix_authn => [123, 234] ) };
     is($err, undef, 'set(auxiliary_gids)');
 }
 

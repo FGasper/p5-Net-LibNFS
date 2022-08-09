@@ -3,7 +3,7 @@ package Net::LibNFS;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.02_90';
 
 =encoding utf-8
 
@@ -137,8 +137,8 @@ Recognized options are:
 =item * C<tcp_syncnt>, C<uid>, C<gid>, C<debug>, C<dircache>,
 C<autoreconnect>, C<timeout>
 
-=item * C<unix_authn> (arrayref) - Sets UID, GID, and auxiliary GIDs.
-Clobbers (and is clobbered by) C<uid> and C<gid>.
+=item * C<unix_authn> (arrayref) - B<EXPERIMENTAL!> Sets UID, GID,
+and auxiliary GIDs. Clobbers (and is clobbered by) C<uid> and C<gid>.
 
 =item * C<pagecache>, C<pagecache_ttl>, C<readahead>
 
