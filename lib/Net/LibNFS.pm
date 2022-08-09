@@ -137,6 +137,8 @@ Recognized options are:
 =item * C<tcp_syncnt>, C<uid>, C<gid>, C<debug>, C<dircache>,
 C<autoreconnect>, C<timeout>
 
+=item * C<auxiliary_gids> (arrayref), if the linked libnfs supports it.
+
 =item * C<pagecache>, C<pagecache_ttl>, C<readahead>
 
 =item * C<readmax>, C<writemax>

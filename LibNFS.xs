@@ -1117,6 +1117,29 @@ set (SV* self_sv, ...)
                 continue;
             }
 
+            #ifdef NLNFS_AUXILIARY_GIDS
+            if (!strcmp(param, "auxiliary_gids")) {
+                if (!SvROK(value_sv) || (SvTYPE(SvRV(value_sv)) != SVt_PVAV)) {
+                    croak("“%s” must be an array reference, not %" SVf, "gids", value_sv);
+                }
+
+                AV* gids_av = (AV*) SvRV(value_sv);
+                uint32_t arrlen = 1 + av_len(gids_av);
+                uint32_t gids[arrlen];
+
+                for (unsigned g=0; g<arrlen; g++) {
+                    SV** gid_svp = av_fetch(gids_av, g, 0);
+                    assert(gid_svp);
+
+                    gids[g] = exs_SvUV(*gid_svp);
+                }
+
+                nfs_set_auxiliary_gids(perl_nfs->nfs, arrlen, gids);
+
+                continue;
+            }
+            #endif
+
             // string --------------------------------------------------
 
             for (ss=0; ss<STRING_SETTINGS_COUNT; ss++) {
