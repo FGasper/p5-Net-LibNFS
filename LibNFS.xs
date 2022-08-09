@@ -29,6 +29,7 @@
 #ifndef F_RDLCK
 #include <fcntl.h>
 
+
 // Strawberry does *not* seem to provide F_RDLCK & friends, though.
 #ifndef F_RDLCK
 #define F_RDLCK 0
