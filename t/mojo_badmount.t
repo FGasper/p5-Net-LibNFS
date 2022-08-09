@@ -19,14 +19,10 @@ my $err;
 
 my $p = $obj->mount('localhost', '/home' . rand)->then(
     sub {
-use Data::Dumper;
-print STDERR Dumper( success => @_ );
-die "should have failed";
-},
+        die "should have failed";
+    },
     sub {
-use Data::Dumper;
-print STDERR Dumper( fail => @_ );
-        $err = shift;
+        $err = shift || 'failure was falsy??';
     },
 )->finally( sub { Mojo::IOLoop->stop() } );
 
