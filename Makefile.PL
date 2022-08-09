@@ -26,7 +26,7 @@ if ($pc_ldflags) {
         $use_dynamic = 1;
     }
     else {
-        print "That’s too old for us; we need at least version $min_major_version.\n";
+        print "That’s too old; we need at least version $min_major_version.\n";
     }
 }
 
