@@ -23,6 +23,7 @@ if ($pc_ldflags) {
 
     if ($major >= $min_major_version) {
         print "That’s recent enough for us, so we’ll use it.\n";
+        $use_dynamic = 1;
     }
     else {
         print "That’s too old for us; we need at least version $min_major_version.\n";

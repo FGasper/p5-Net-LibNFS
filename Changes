@@ -1,5 +1,9 @@
 Revision history for Perl extension Net::LibNFS:
 
+0.04
+- Fix dynamic linking.
+- Make dynamic linking not re-export symbols.
+
 0.03 Tue 9 Aug 2022
 - Add support for auxiliary GIDs.
 - Make sync_badmount.t more tolerant of new Linuxes.
