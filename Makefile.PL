@@ -5,6 +5,7 @@ use ExtUtils::MakeMaker::CPANfile;
 use ExtUtils::PkgConfig;
 use File::Spec;
 use File::Temp;
+use Config;
 
 my $pc_name = 'libnfs';
 
