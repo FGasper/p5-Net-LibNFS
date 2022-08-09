@@ -18,8 +18,14 @@ isa_ok($obj, 'Net::LibNFS::Async', 'return from new()');
 my $err;
 
 my $p = $obj->mount('localhost', '/home' . rand)->then(
-    sub { die "should have failed" },
     sub {
+use Data::Dumper;
+print STDERR Dumper( success => @_ );
+die "should have failed";
+},
+    sub {
+use Data::Dumper;
+print STDERR Dumper( fail => @_ );
         $err = shift;
     },
 )->finally( sub { Mojo::IOLoop->stop() } );
