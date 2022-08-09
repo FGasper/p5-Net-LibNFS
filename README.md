@@ -107,7 +107,8 @@ Recognized options are:
 - `client_name` and `verifier` (NFSv4 only)
 - `tcp_syncnt`, `uid`, `gid`, `debug`, `dircache`,
 `autoreconnect`, `timeout`
-- `auxiliary_gids` (arrayref), if the linked libnfs supports it.
+- `unix_authn` (arrayref) - Sets UID, GID, and auxiliary GIDs.
+Clobbers (and is clobbered by) `uid` and `gid`.
 - `pagecache`, `pagecache_ttl`, `readahead`
 - `readmax`, `writemax`
 
