@@ -5,6 +5,7 @@ use warnings;
 
 use Test::More;
 use Test::FailWarnings -allow_deps => 1;
+use Test::Deep;
 
 use Net::LibNFS;
 
@@ -35,16 +36,13 @@ diag "starting loop";
 Mojo::IOLoop->start();
 diag "after loop";
 
-isa_ok(
+cmp_deeply(
     $err,
-    'Net::LibNFS::X::Base',
-    'either localhost isn’t an NFS server, or we connect to nonexistent export',
+    any(
+        Isa('Net::LibNFS::X::BadConnection'),
+        Isa('Net::LibNFS::X::NFSError'),
+    ),
+    'got expected error on mount() failure',
 ) or diag explain $err;
 
-ok(
-    $err->isa('Net::LibNFS::X::BadConnection') || $err->isa('Net::LibNFS::X::NFSError'),
-    'one of the expected error classes',
-);
-
 done_testing;
-

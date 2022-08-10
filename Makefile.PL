@@ -27,7 +27,7 @@ else {
             $cflags = ExtUtils::PkgConfig->cflags($pc_name) || q<>;
 
             my $modversion = ExtUtils::PkgConfig->modversion($pc_name);
-            print "I found a shared libnfs version $modversion.\n";
+            print "I found a shared libnfs, version $modversion.\n";
 
             my ($major) = $modversion =~ m<(\d+)>;
 
