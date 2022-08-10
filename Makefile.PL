@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 use ExtUtils::MakeMaker::CPANfile;
-use ExtUtils::PkgConfig;
 use File::Spec;
 use File::Temp;
 use Config;
@@ -11,23 +10,39 @@ my $pc_name = 'libnfs';
 
 my $min_major_version = 5;
 
-my $cflags = ExtUtils::PkgConfig->cflags($pc_name) || q<>;
-my $pc_ldflags = ExtUtils::PkgConfig->libs($pc_name);
+my ($cflags, $pc_ldflags);
 
 my $use_dynamic;
 
-if ($pc_ldflags) {
-    my $modversion = ExtUtils::PkgConfig->modversion($pc_name);
-    print "I found a shared libnfs version $modversion.\n";
+if ($ENV{'NET_LIBNFS_LINK_STATIC'}) {
+    print "You asked specifically for a static libnfs.\n";
+}
+else {
+    if (eval { require ExtUtils::PkgConfig }) {
+        print "Querying pkg-config for a usable libnfs …\n";
 
-    my ($major) = $modversion =~ m<(\d+)>;
+        $pc_ldflags = ExtUtils::PkgConfig->libs($pc_name);
 
-    if ($major >= $min_major_version) {
-        print "That’s recent enough for us, so we’ll use it.\n";
-        $use_dynamic = 1;
+        if ($pc_ldflags) {
+            $cflags = ExtUtils::PkgConfig->cflags($pc_name) || q<>;
+
+            my $modversion = ExtUtils::PkgConfig->modversion($pc_name);
+            print "I found a shared libnfs version $modversion.\n";
+
+            my ($major) = $modversion =~ m<(\d+)>;
+
+            if ($major >= $min_major_version) {
+                print "That’s recent enough for us, so we’ll use it.\n";
+                $use_dynamic = 1;
+            }
+            else {
+                print "That’s too old; we need at least version $min_major_version.\n";
+            }
+        }
     }
     else {
-        print "That’s too old; we need at least version $min_major_version.\n";
+        print $@;
+        print "ExtUtils::PkgConfig didn’t load, so we can’t check for a shared libnfs.\n";
     }
 }
 

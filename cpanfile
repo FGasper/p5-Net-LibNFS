@@ -1,7 +1,9 @@
-configure_requires 'ExtUtils::MakeMaker::CPANfile';
-configure_requires 'ExtUtils::PkgConfig';
-configure_requires 'File::Which';
+on configure => sub {
+    requires 'ExtUtils::MakeMaker::CPANfile';
+    requires 'File::Which';
+};
 
+recommends 'ExtUtils::PkgConfig';
 recommends 'Alien::cmake3';
 
 requires 'Promise::XS' => 0.16;

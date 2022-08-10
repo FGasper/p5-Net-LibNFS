@@ -944,6 +944,11 @@ static int _write_or_pwrite (pTHX_ SV* self_sv, SV* offset_sv, SV* buf_sv, SV* c
     return RETVAL;
 }
 
+// NB: libnfs 5.0.2 added the ability to set auxiliary GIDs, which would
+// obviate this functionality; however, by retaining it we allow pre-5.0.2
+// libnfs releases to set aux GIDs. So there’s little incentive to adopt
+// libnfs’s new hotness.
+//
 static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
 
     if (!SvROK(value_sv) || (SvTYPE(SvRV(value_sv)) != SVt_PVAV)) {
