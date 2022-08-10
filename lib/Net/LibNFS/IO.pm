@@ -97,9 +97,11 @@ sub _service {
 
     if ( $self->{'service_err'} ||= $self->{'nfs'}->_service($revents) ) {
         $self->_stop();
+print STDERR "_stopped\n";
 
         my $err = Net::LibNFS::X->create('BadConnection');
         $self->__reject_all($err);
+print STDERR "_rejected\n";
     }
     else {
         $self->_poll_write_if_needed();
@@ -125,6 +127,7 @@ sub _poll_write_if_needed {
 sub __reject_all {
     my ($self, $err) = @_;
 
+print STDERR "__reject_all: [$err]\n";
     $_->reject($err) for values %{ $self->{'deferreds'} };
     %{ $self->{'deferreds'} } = ();
 
