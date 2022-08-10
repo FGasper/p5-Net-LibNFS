@@ -19,13 +19,19 @@ my $err;
 
 my $p = $obj->mount('localhost', '/home' . rand)->then(
     sub {
+        die "promise OK (?!?)";
         die "should have failed";
     },
     sub {
         $err = shift || 'failure was falsy??';
+        die "promise failed ($err)";
     },
-)->finally( sub { Mojo::IOLoop->stop() } );
+)->finally( sub {
+    diag "stopping loop";
+    Mojo::IOLoop->stop();
+} );
 
+diag "starting loop";
 Mojo::IOLoop->start();
 
 isa_ok(
