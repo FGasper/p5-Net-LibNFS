@@ -33,6 +33,7 @@ my $p = $obj->mount('localhost', '/home' . rand)->then(
 
 diag "starting loop";
 Mojo::IOLoop->start();
+diag "after loop";
 
 isa_ok(
     $err,
