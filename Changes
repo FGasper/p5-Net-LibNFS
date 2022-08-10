@@ -1,6 +1,7 @@
 Revision history for Perl extension Net::LibNFS:
 
 0.04
+- Update to latest X::Tiny to fix an error with exception creation.
 - Fix dynamic linking.
 - Make dynamic linking not re-export symbols.
 - Auxiliary GIDs are no longer experimental.
