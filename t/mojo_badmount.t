@@ -14,7 +14,7 @@ eval { require Mojo::IOLoop } or do {
 };
 
 my $obj = Net::LibNFS->new()->mojo();
-isa_ok($obj, 'Net::LibNFS::Async', 'return from new()');
+isa_ok($obj, 'Net::LibNFS::Async', 'return from mojo()');
 
 my $err;
 
