@@ -123,29 +123,33 @@ sub _service {
 
 use X::Tiny::Base;
 no warnings 'redefine';
-sub X::Tiny::Base::_get_printable_call_stack {
-    my ($level) = @_;
+sub X::Tiny::Base::_arg_to_printable {
 
-    my @stack;
+    return "$_" if ref;
 
-    package DB;
+    return 'undef' if !defined;
 
-    #This local() causes pre-5.16 Perl to segfault.
-    #local @DB::args if $^V ge v5.16.0;
+    my $copy;
 
-    while ( my @call = (caller $level)[3, 1, 2] ) {
-print "stack trace: call = @call\n";
-        my ($pkg) = ($call[0] =~ m<(.+)::>);
+    my $err = $@;
 
-        if (!$pkg || !$pkg->isa('X::Tiny::Base')) {
-            push @call, [ map { X::Tiny::Base::_arg_to_printable() } @DB::args ];  #need to copy the array
-            push @stack, \@call;
-        }
-
-        $level++;
+    # In order to avoid warn()ing on undefined values
+    # (and to distinguish '' from undef) we now quote scalars.
+    #
+    # We also eval the assignment in case the item was already freed.
+    #
+    if ( eval { $copy = $_ } ) {
+        $copy =~ s<'><\\'>g;
+        substr($copy, 0, 0, q<'>);
+        $copy .= q<'>;
+    }
+    else {
+        $copy = '** argument not available anymore (already freed) **';
     }
 
-    return @stack;
+    $@ = $err;
+
+    return $copy;
 }
 
 sub _poll_write_if_needed {
