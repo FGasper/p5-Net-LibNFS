@@ -98,58 +98,12 @@ sub _service {
     if ( $self->{'service_err'} ||= $self->{'nfs'}->_service($revents) ) {
         $self->_stop();
 
-        # “Bizarre copy of CODE in scalar assignment” exceptions have
-        # been seen with Mojo on Perl 5.20. That could be a Perl 5.20
-        # bug, or it could be a memory-handling bug in Promise::XS or
-        # this library. (Or something else?) The fact that it only seems
-        # to happen in 5.20 suggests that it‘s a Perl thing.
-
-        # Really old perls can’t “local $@”. Might as well accommodate.
-        #
-        my $old_err = $@;
-
-        my $err = eval { Net::LibNFS::X->create('BadConnection') } || do {
-            "Bad connection (also: $@)";
-        };
-
-        $@ = $old_err;
-
+        my $err = Net::LibNFS::X->create('BadConnection');
         $self->__reject_all($err);
     }
     else {
         $self->_poll_write_if_needed();
     }
-}
-
-use X::Tiny::Base;
-no warnings 'redefine';
-sub X::Tiny::Base::_arg_to_printable {
-
-    return "$_" if ref;
-
-    return 'undef' if !defined;
-
-    my $copy;
-
-    my $err = $@;
-
-    # In order to avoid warn()ing on undefined values
-    # (and to distinguish '' from undef) we now quote scalars.
-    #
-    # We also eval the assignment in case the item was already freed.
-    #
-    if ( eval { $copy = $_ } ) {
-        $copy =~ s<'><\\'>g;
-        substr($copy, 0, 0, q<'>);
-        $copy .= q<'>;
-    }
-    else {
-        $copy = '** argument not available anymore (already freed) **';
-    }
-
-    $@ = $err;
-
-    return $copy;
 }
 
 sub _poll_write_if_needed {

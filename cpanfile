@@ -7,7 +7,7 @@ recommends 'ExtUtils::PkgConfig';
 recommends 'Alien::cmake3';
 
 requires 'Promise::XS' => 0.16;
-requires 'X::Tiny' => 0.21;
+requires 'X::Tiny' => 0.22;
 
 on develop => sub {
     requires 'AnyEvent';
