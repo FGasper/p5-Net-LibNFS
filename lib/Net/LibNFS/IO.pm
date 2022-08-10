@@ -122,6 +122,7 @@ sub _service {
 }
 
 use X::Tiny::Base;
+no warnings 'redefine';
 sub X::Tiny::Base::_get_printable_call_stack {
     my ($level) = @_;
 
