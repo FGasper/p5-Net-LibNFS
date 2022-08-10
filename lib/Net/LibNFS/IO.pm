@@ -133,6 +133,7 @@ sub X::Tiny::Base::_get_printable_call_stack {
     #local @DB::args if $^V ge v5.16.0;
 
     while ( my @call = (caller $level)[3, 1, 2] ) {
+print "stack trace: call = @call\n";
         my ($pkg) = ($call[0] =~ m<(.+)::>);
 
         if (!$pkg || !$pkg->isa('X::Tiny::Base')) {
