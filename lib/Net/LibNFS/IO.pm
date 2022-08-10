@@ -108,7 +108,6 @@ sub _service {
         #
         my $old_err = $@;
 
-use Carp::Always;
         my $err = eval { Net::LibNFS::X->create('BadConnection') } || do {
             "Bad connection (also: $@)";
         };
@@ -120,6 +119,31 @@ use Carp::Always;
     else {
         $self->_poll_write_if_needed();
     }
+}
+
+use X::Tiny::Base;
+sub X::Tiny::Base::_get_printable_call_stack {
+    my ($level) = @_;
+
+    my @stack;
+
+    package DB;
+
+    #This local() causes pre-5.16 Perl to segfault.
+    #local @DB::args if $^V ge v5.16.0;
+
+    while ( my @call = (caller $level)[3, 1, 2] ) {
+        my ($pkg) = ($call[0] =~ m<(.+)::>);
+
+        if (!$pkg || !$pkg->isa('X::Tiny::Base')) {
+            push @call, [ map { X::Tiny::Base::_arg_to_printable() } @DB::args ];  #need to copy the array
+            push @stack, \@call;
+        }
+
+        $level++;
+    }
+
+    return @stack;
 }
 
 sub _poll_write_if_needed {

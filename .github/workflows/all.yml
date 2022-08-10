@@ -47,7 +47,6 @@ jobs:
         run: perl -V
       - name: Install Dependencies
         run: cpanm --notest --installdeps --with-configure --with-develop --with-recommends .
-      - run: cpanm --notest Carp::Always
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
