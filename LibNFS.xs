@@ -944,30 +944,27 @@ static int _write_or_pwrite (pTHX_ SV* self_sv, SV* offset_sv, SV* buf_sv, SV* c
     return RETVAL;
 }
 
-static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
+#ifdef NLNFS_AUXILIARY_GIDS
+static void _set_auxiliary_gids(pTHX_ struct nfs_context* nfs, SV* value_sv) {
 
     if (!SvROK(value_sv) || (SvTYPE(SvRV(value_sv)) != SVt_PVAV)) {
         croak("“%s” must be an array reference, not %" SVf, "unix_authn", value_sv);
     }
 
-    AV* authn_av = (AV*) SvRV(value_sv);
-    uint32_t nums_count = 1 + av_len(authn_av);
-    if (nums_count < 2) croak("“%s” must contain at least 2 numbers", "unix_authn");
+    AV* gids_av = (AV*) SvRV(value_sv);
+    uint32_t arrlen = 1 + av_len(gids_av);
+    uint32_t gids[arrlen];
 
-    uint32_t nums[nums_count];
+    for (unsigned g=0; g<arrlen; g++) {
+        SV** gid_svp = av_fetch(gids_av, g, 0);
+        assert(gid_svp);
 
-    for (unsigned n=0; n<nums_count; n++) {
-        SV** svp = av_fetch(authn_av, n, 0);
-        assert(svp);
-
-        nums[n] = exs_SvUV(*svp);
+        gids[g] = exs_SvUV(*gid_svp);
     }
 
-    struct AUTH* auth = libnfs_authunix_create(UNIX_AUTHN_MACHINE_NAME, nums[0], nums[1], nums_count - 2, 2 + nums);
-    assert(auth);
-
-    nfs_set_auth(nfs, auth);
+    nfs_set_auxiliary_gids(nfs, arrlen, gids);
 }
+#endif
 
 // ----------------------------------------------------------------------
 
@@ -1145,11 +1142,13 @@ set (SV* self_sv, ...)
                 continue;
             }
 
-            if (!strcmp(param, "unix_authn")) {
-                _set_unix_authn(aTHX_ perl_nfs->nfs, value_sv);
+#ifdef NLNFS_AUXILIARY_GIDS
+            if (!strcmp(param, "auxiliary_gids")) {
+                _set_auxiliary_gids(aTHX_ perl_nfs->nfs, value_sv);
 
                 continue;
             }
+#endif
 
             // string --------------------------------------------------
 

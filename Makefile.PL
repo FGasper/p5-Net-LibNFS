@@ -41,6 +41,22 @@ my $STATIC_INSTALL_DIR = do {
     File::Spec->catdir(Cwd::getcwd(), 'libnfs-install');
 };
 
+my @defines;
+
+my @checks = (
+    {
+        label => 'auxiliary GIDs',
+        c => [
+            '#include <nfsc/libnfs.h>',
+            'int main() {',
+            '   (void)(nfs_set_auxiliary_gids);',
+            '   return 0;',
+            '}',
+        ],
+        define => 'NLNFS_AUXILIARY_GIDS',
+    },
+);
+
 if ($use_dynamic) {
     print "I found a suitable shared libnfs, so I’ll use it:\n";
     print "    libs: $pc_ldflags\n";
@@ -51,9 +67,42 @@ if ($use_dynamic) {
     if ($^O !~ /^(MSWin32|darwin|solaris)$/ && ($Config{ld} =~ /gcc|g\+\+/ ||     $Config{gccversion})) {
        push @link_args, (LDDLFLAGS => "$Config{lddlflags} -Wl,--exclude-libs,ALL");
     }
+
+    my $ccpath = $ENV{'CC'} || $Config::Config{'cc'};
+    print "Your C compiler appears to be: $ccpath\n";
+
+    for my $check (@checks) {
+        my $tdir = File::Temp::tempdir( CLEANUP => 1 );
+        my $cpath = File::Spec->catdir( $tdir, 'check.c' );
+        my $progpath = File::Spec->catdir( $tdir, 'check' );
+
+        {
+            open my $wfh, '>', $cpath;
+            print {$wfh} "$_$/" for @{ $check->{'c'} };
+        }
+
+        my $cmd = "$ccpath $Config{'ccflags'} $cflags $cpath -o $progpath $Config{ccdlflags} $pc_ldflags";
+        system($cmd);
+
+        print "$check->{'define'}: ";
+        if (-s $progpath) {
+            print "yes";
+            push @defines, $check->{'define'};
+        }
+        else {
+            print "no";
+        }
+
+        print $/;
+    }
 }
 else {
     print "I found no usable shared libnfs, so I’ll try to make a static one.\n";
+
+    # We’ll build our own libnfs, which is recent enough to have all
+    # the latest bells & whistles.
+    #
+    push @defines, map { $_->{'define'} } @checks;
 
     mkdir $build_path or do {
         die "mkdir($build_path): $!" if !$!{'EEXIST'};
@@ -109,6 +158,11 @@ WriteMakefile(
       ) : ()
     ),
     LICENSE => "perl_5",
+
+    DEFINE => join(
+        q< >,
+        map { "-D$_" } @defines,
+    ),
 
     INC => join(
         q< >,

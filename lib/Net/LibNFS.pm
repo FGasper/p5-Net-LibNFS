@@ -137,8 +137,7 @@ Recognized options are:
 =item * C<tcp_syncnt>, C<uid>, C<gid>, C<debug>, C<dircache>,
 C<autoreconnect>, C<timeout>
 
-=item * C<unix_authn> (arrayref) - B<EXPERIMENTAL!> Sets UID, GID,
-and auxiliary GIDs. Clobbers (and is clobbered by) C<uid> and C<gid>.
+=item * C<auxiliary_gids>
 
 =item * C<pagecache>, C<pagecache_ttl>, C<readahead>
 
