@@ -108,6 +108,7 @@ sub _service {
         #
         my $old_err = $@;
 
+use Carp::Always;
         my $err = eval { Net::LibNFS::X->create('BadConnection') } || do {
             "Bad connection (also: $@)";
         };
