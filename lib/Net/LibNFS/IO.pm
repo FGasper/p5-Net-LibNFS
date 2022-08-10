@@ -97,14 +97,24 @@ sub _service {
 
     if ( $self->{'service_err'} ||= $self->{'nfs'}->_service($revents) ) {
         $self->_stop();
-print STDERR "_stopped\n";
 
-warn if !eval {
-        my $err = Net::LibNFS::X->create('BadConnection');
+        # “Bizarre copy of CODE in scalar assignment” exceptions have
+        # been seen with Mojo on Perl 5.20. That could be a Perl 5.20
+        # bug, or it could be a memory-handling bug in Promise::XS or
+        # this library. (Or something else?) The fact that it only seems
+        # to happen in 5.20 suggests that it‘s a Perl thing.
+
+        # Really old perls can’t “local $@”. Might as well accommodate.
+        #
+        my $old_err = $@;
+
+        my $err = eval { Net::LibNFS::X->create('BadConnection') } || do {
+            "Bad connection (also: $@)";
+        };
+
+        $@ = $old_err;
+
         $self->__reject_all($err);
-print STDERR "_rejected\n";
-1;
-};
     }
     else {
         $self->_poll_write_if_needed();
@@ -130,7 +140,6 @@ sub _poll_write_if_needed {
 sub __reject_all {
     my ($self, $err) = @_;
 
-print STDERR "__reject_all: [$err]\n";
     $_->reject($err) for values %{ $self->{'deferreds'} };
     %{ $self->{'deferreds'} } = ();
 

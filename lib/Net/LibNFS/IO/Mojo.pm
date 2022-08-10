@@ -124,8 +124,6 @@ sub _poll_write {
 }
 
 sub _stop {
-use Carp;
-print STDERR Carp::longmess('_stop');
     my ($self) = @_;
 
     if (my $timer = delete $self->{'timer'}) {
