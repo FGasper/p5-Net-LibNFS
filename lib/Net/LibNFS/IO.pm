@@ -99,9 +99,12 @@ sub _service {
         $self->_stop();
 print STDERR "_stopped\n";
 
+warn if !eval {
         my $err = Net::LibNFS::X->create('BadConnection');
         $self->__reject_all($err);
 print STDERR "_rejected\n";
+1;
+};
     }
     else {
         $self->_poll_write_if_needed();
