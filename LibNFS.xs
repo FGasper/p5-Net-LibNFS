@@ -150,7 +150,7 @@ typedef SV* (*_cb_parser) (pTHX_ void*, const char*, int, void *, SV**, void*);
 
 typedef struct {
 #ifdef MULTIPLICITY
-    pTHX;
+    tTHX aTHX;
 #endif
     SV* cb;
     void* arg;
