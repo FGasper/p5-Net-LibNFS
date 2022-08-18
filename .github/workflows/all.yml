@@ -121,7 +121,7 @@ jobs:
           - s390x
           #- arm32v6
           - arm32v7
-          - arm32v8
+          #- arm32v8
 
     steps:
       - uses: actions/checkout@main
