@@ -114,6 +114,7 @@ jobs:
     name: QEMU (${{ matrix.platform }})
 
     strategy:
+      fail-fast: false
       matrix:
         platform:
           - i386
