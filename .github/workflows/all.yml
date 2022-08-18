@@ -118,7 +118,7 @@ jobs:
         platform:
           - i386
           - s390x
-          - arm32v6
+          #- arm32v6
           - arm32v7
           - arm32v8
 
