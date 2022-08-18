@@ -108,6 +108,29 @@ jobs:
       - name: Run Tests
         run: prove -wlvmb t
 
+  qemu:
+    runs-on: ubuntu-latest
+
+    name: QEMU (${{ matrix.platform }})
+
+    strategy:
+      matrix:
+        platform:
+          - i386
+          - s390x
+          - arm32v6
+          - arm32v7
+          - arm32v8
+
+    steps:
+      - uses: actions/checkout@main
+        with:
+            submodules: recursive
+      - name: Get the qemu container
+        run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      - name: Run tests on ${{ matrix.platform }}
+        run: docker run --rm --interactive --mount type=bind,source=$(pwd),target=/host ${{ matrix.platform }}/ubuntu bash -c "apt update; apt install -y curl cpanminus make git gcc; perl -V; cd /host; cpanm --notest --installdeps --with-develop --with-recommends --with-configure .; perl Makefile.PL; make; prove -wlvmb t"
+
   mac-static:
     runs-on: macOS-latest
 
@@ -116,11 +139,11 @@ jobs:
         with:
             submodules: recursive
       - name: Set up Perl
-        run: brew install perl
+        run: brew install perl cpanminus
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: curl -L https://cpanmin.us | perl - --notest --installdeps --with-develop --with-recommends --with-configure .
+        run: cpanm --notest --installdeps --with-develop --with-recommends --with-configure .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -135,11 +158,11 @@ jobs:
         with:
             submodules: recursive
       - name: Set up Perl & libnfs
-        run: brew install perl libnfs
+        run: brew install perl libnfs cpanminus
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: curl -L https://cpanmin.us | perl - --notest --installdeps --with-develop --with-configure --with-recommends .
+        run: cpanm --notest --installdeps --with-develop --with-configure --with-recommends .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
