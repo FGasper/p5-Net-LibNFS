@@ -117,9 +117,8 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - i386
+          # - i386  # cf. https://github.com/sahlberg/libnfs/issues/393
           - s390x
-          #- arm32v6
           - arm32v7
           - arm64v8
 
