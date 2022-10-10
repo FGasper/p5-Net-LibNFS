@@ -36,7 +36,7 @@ Blocking I/O:
         print "Name: ", $dir_obj->name(), $/;
     }
 
-    $nfs->unmount();
+    $nfs->umount();
 
 Non-blocking I/O, using L<IO::Async>:
 
@@ -51,7 +51,7 @@ Non-blocking I/O, using L<IO::Async>:
             print "Name: ", $dir_obj->name(), $/;
         }
     } )->then( sub {
-        $nfsa->unmount();
+        $nfsa->umount();
     } )->finally( sub { $loop->stop() } );
 
     $loop->run();
