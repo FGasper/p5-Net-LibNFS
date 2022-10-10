@@ -1001,14 +1001,28 @@ find_local_servers ()
             XSRETURN_EMPTY;
         }
 
-        struct nfs_server_list *cur_srv = servers;
+        struct nfs_server_list *srvlist = servers;
+        struct nfs_server_list *cur_srv = srvlist;
+
+        unsigned srvcount = 0;
 
         while (cur_srv) {
-            mXPUSHs( newSVpv(cur_srv->addr, 0) );
+            srvcount++;
             cur_srv = cur_srv->next;
         }
 
-        free_nfs_srvr_list(servers);
+        cur_srv = srvlist;
+
+        if (srvcount) {
+            EXTEND(SP, srvcount);
+
+            while (cur_srv) {
+                mPUSHs( newSVpv(cur_srv->addr, 0) );
+                cur_srv = cur_srv->next;
+            }
+        }
+
+        free_nfs_srvr_list(srvlist);
 
 void
 mount_getexports (SV* server_sv, SV* timeout_sv=&PL_sv_undef)
@@ -2002,17 +2016,25 @@ read (SV* self_sv)
         nlnfs_s* perl_nfs = exs_structref_ptr(nfs_sv);
 
         unsigned retcount = 0;
-        struct nfsdirent* dent;
+        struct nfsdirent* dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
+        struct nfsdirent* cur_dent = dent;
 
-        while (1) {
-            dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
-
-            if (!dent) break;
-
-            mXPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
+        while (cur_dent) {
             retcount++;
-
             if (GIMME_V != G_ARRAY) break;
+
+            cur_dent = cur_dent->next;
+        }
+
+        if (retcount) {
+            EXTEND(SP, retcount);
+
+            unsigned retcount_copy = retcount;
+
+            while (retcount_copy--) {
+                mPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
+                dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
+            }
         }
 
         XSRETURN(retcount);
