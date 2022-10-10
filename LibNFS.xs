@@ -1004,7 +1004,7 @@ find_local_servers ()
         struct nfs_server_list *cur_srv = servers;
 
         while (cur_srv) {
-            XPUSHs( newSVpv(cur_srv->addr, 0) );
+            mXPUSHs( newSVpv(cur_srv->addr, 0) );
             cur_srv = cur_srv->next;
         }
 
@@ -2009,7 +2009,7 @@ read (SV* self_sv)
 
             if (!dent) break;
 
-            XPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
+            mXPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
             retcount++;
 
             if (GIMME_V != G_ARRAY) break;
