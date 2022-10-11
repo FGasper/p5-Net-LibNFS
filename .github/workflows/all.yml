@@ -46,7 +46,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: cpanm --notest --installdeps --with-configure --with-develop --with-recommends .
+        run: cpanm --notest --installdeps --with-configure --with-develop --with-recommends --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -76,7 +76,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: cpanm --notest --installdeps --with-configure --with-recommends --with-develop .
+        run: cpanm --notest --installdeps --with-configure --with-recommends --with-develop --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -100,7 +100,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: cpanm --notest --installdeps --with-configure --with-develop --with-recommends .
+        run: cpanm --notest --installdeps --with-configure --with-develop --with-recommends --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -143,7 +143,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: cpanm --notest --installdeps --with-develop --with-recommends --with-configure .
+        run: cpanm --notest --installdeps --with-develop --with-recommends --with-configure --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -162,7 +162,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: cpanm --notest --installdeps --with-develop --with-configure --with-recommends .
+        run: cpanm --notest --installdeps --with-develop --with-configure --with-recommends --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
@@ -193,7 +193,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install Dependencies
-        run: curl -L https://cpanmin.us | perl - --notest --installdeps --with-develop --with-configure .
+        run: curl -L https://cpanmin.us | perl - --notest --installdeps --with-develop --with-configure --verbose .
       - name: perl Makefile.PL
         run: perl Makefile.PL
       - name: make
