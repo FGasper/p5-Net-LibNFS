@@ -663,9 +663,12 @@ static const _int_setting_s INT_SETTINGS[] = {
     { .name = "uid", .func = nfs_set_uid },
     { .name = "gid", .func = nfs_set_gid },
     { .name = "debug", .func = nfs_set_debug },
+    { .name = "auto_traverse_mounts", .func = nfs_set_auto_traverse_mounts },
     { .name = "dircache", .func = nfs_set_dircache },
     { .name = "autoreconnect", .func = nfs_set_autoreconnect },
     { .name = "timeout", .func = nfs_set_timeout },
+    { .name = "nfsport", .func = nfs_set_nfsport },
+    { .name = "mountport", .func = nfs_set_mountport },
 };
 
 static const unsigned INT_SETTINGS_COUNT = sizeof(INT_SETTINGS) / sizeof(_int_setting_s);
