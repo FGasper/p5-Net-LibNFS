@@ -2015,29 +2015,34 @@ read (SV* self_sv)
 
         nlnfs_s* perl_nfs = exs_structref_ptr(nfs_sv);
 
-        unsigned retcount = 0;
         struct nfsdirent* dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
-        struct nfsdirent* cur_dent = dent;
 
-        while (cur_dent) {
-            retcount++;
-            if (GIMME_V != G_ARRAY) break;
-
-            cur_dent = cur_dent->next;
-        }
-
-        if (retcount) {
-            EXTEND(SP, retcount);
-
-            unsigned retcount_copy = retcount;
-
-            while (retcount_copy--) {
-                mPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
-                dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
+        if (GIMME_V == G_ARRAY) {
+            unsigned retcount = 0;
+            struct nfsdirent* cur_dent = dent;
+            while (cur_dent) {
+                retcount++;
+                cur_dent = cur_dent->next;
             }
-        }
 
-        XSRETURN(retcount);
+            if (retcount) {
+                EXTEND(SP, retcount);
+
+                unsigned retcount_copy = retcount;
+
+                while (retcount_copy--) {
+                    mPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
+                    dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
+                }
+            }
+
+            XSRETURN(retcount);
+        } else if (dent) {
+            mXPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
+            XSRETURN(1);
+        } else {
+            XSRETURN_EMPTY;
+        }
 
 SV*
 seek (SV* self_sv, SV* loc_sv)
