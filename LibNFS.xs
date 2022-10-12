@@ -2031,8 +2031,12 @@ read (SV* self_sv)
 
             unsigned retcount_copy = retcount;
 
-            while (retcount_copy--) {
+            while (1) {
                 mPUSHs(_ptr_to_perl_dirent_obj(aTHX_ dent));
+
+                retcount_copy--;
+                if (!retcount_copy) break;
+
                 dent = nfs_readdir( perl_nfs->nfs, nfs_dh->nfsdh );
             }
         }
