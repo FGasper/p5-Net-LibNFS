@@ -143,8 +143,8 @@ Recognized options are:
 
 =item * C<client_name> and C<verifier> (NFSv4 only)
 
-=item * C<tcp_syncnt>, C<uid>, C<gid>, C<debug>, C<dircache>,
-C<autoreconnect>, C<timeout>
+=item * C<tcp_syncnt>, C<uid>, C<gid>, C<debug>, C<auto_traverse_mounts>, C<dircache>,
+C<autoreconnect>, C<timeout>, C<nfsport>, C<mountport>
 
 =item * C<unix_authn> (arrayref) - Sets UID, GID, and auxiliary GIDs
 at once. Clobbers (and is clobbered by) C<uid> and C<gid>.
