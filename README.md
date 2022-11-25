@@ -121,6 +121,10 @@ use an older, shared libnfs.)
 at once. Clobbers (and is clobbered by) `uid` and `gid`.
 - `pagecache`, `pagecache_ttl`, `readahead`
 - `readmax`, `writemax`
+- `readdir_buffer` - Sets the maximum buffer size for `READDIRPLUS`
+(which is used by _OBJ_->opendir). Can be a two-element arrayref to set
+`dircount` and `maxcount` independently or an unsigned integer to set both
+to the same value.
 
 ## $old\_umask = _OBJ_->umask( $NEW\_UMASK )
 
