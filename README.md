@@ -114,8 +114,8 @@ Recognized options are:
 
 - `version`
 - `client_name` and `verifier` (NFSv4 only)
-- `tcp_syncnt`, `uid`, `gid`, `debug`, `dircache`,
-`autoreconnect`, `timeout`
+- `tcp_syncnt`, `uid`, `gid`, `debug`, `auto_traverse_mounts`, `dircache`,
+`autoreconnect`, `timeout`, `nfsport`, `mountport`
 - `unix_authn` (arrayref) - Sets UID, GID, and auxiliary GIDs
 at once. Clobbers (and is clobbered by) `uid` and `gid`.
 - `pagecache`, `pagecache_ttl`, `readahead`
