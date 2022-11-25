@@ -2,6 +2,7 @@ Revision history for Perl extension Net::LibNFS:
 
 0.05
 - Attempt better i386 compatibility.
+- Feature-detection added to support different libnfs versions.
 - Fix memory leak when reading directories and local nodes.
   (Thank you, rovo89!)
 - Optimize return of directory reads & local-node reads.
