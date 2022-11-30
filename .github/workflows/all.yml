@@ -261,7 +261,7 @@ jobs:
       - uses: actions/checkout@main
         with:
             submodules: recursive
-      - shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+      - shell: C:\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
         run: |
             perl -V
             cpan -T App::cpanminus
