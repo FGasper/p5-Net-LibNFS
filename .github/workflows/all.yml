@@ -241,60 +241,32 @@ jobs:
             prove -wlvmb t
 
 
-  cygwin-static:
+  cygwin:
     runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        linkage:
+          - name: static
+            packages: ''
+          - name: dynamic
+            packages: libnfs pkgconf
 
     steps:
       - name: Set up Cygwin
-        uses: egor-tensin/setup-cygwin@v3
+        uses: cygwin/cygwin-install-action@master
         with:
-            platform: x64
-            packages: perl_base perl-ExtUtils-MakeMaker make gcc-g++ libcrypt-devel libnsl-devel bash cmake
+            packages: perl_base perl-ExtUtils-MakeMaker make gcc-g++ libcrypt-devel libnsl-devel bash cmake ${{ matrix.linkage.packages }}
       - uses: actions/checkout@main
         with:
             submodules: recursive
-      - run: perl -V
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - run: cpan App::cpanminus
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: Install Dependencies
-        run: cd $GITHUB_WORKSPACE; cpanm --verbose --notest --installdeps --with-configure --with-develop --with-recommends .
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: perl Makefile.PL
-        run: cd $GITHUB_WORKSPACE; perl Makefile.PL
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: make
-        run: cd $GITHUB_WORKSPACE; make
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: make test
-        run: cd $GITHUB_WORKSPACE; prove -wlvmb t
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-
-  cygwin-dynamic:
-    runs-on: windows-latest
-
-    steps:
-      - name: Set up Cygwin
-        uses: egor-tensin/setup-cygwin@v3
-        with:
-            platform: x64
-            packages: perl_base perl-ExtUtils-MakeMaker make gcc-g++ libcrypt-devel libnsl-devel bash libnfs cmake pkgconf
-      - uses: actions/checkout@main
-        with:
-            submodules: recursive
-      - run: perl -V
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - run: cpan App::cpanminus
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: Install Dependencies
-        run: cd $GITHUB_WORKSPACE; cpanm --verbose --notest --installdeps --with-configure --with-develop --with-recommends .
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: perl Makefile.PL
-        run: cd $GITHUB_WORKSPACE; perl Makefile.PL
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: make
-        run: cd $GITHUB_WORKSPACE; make
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-      - name: make test
-        run: cd $GITHUB_WORKSPACE; prove -wlvmb t
-        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+      - shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+        run: |
+            perl -V
+            cpan -T App::cpanminus
+            cd $GITHUB_WORKSPACE
+            cpanm --verbose --notest --installdeps --with-configure --with-develop --with-recommends .
+            perl Makefile.PL
+            make
+            prove -wlvmb t
