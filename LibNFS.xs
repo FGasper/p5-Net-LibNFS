@@ -975,6 +975,11 @@ static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
         assert(svp);
 
         UV value = exs_SvUV(*svp);
+
+        // The RPC protocol transmits these values using 4 bytes.
+        // Thus, u32 is the maximum, despite libnfs’s use of plain int
+        // for these values.
+        //
         if (value > UINT32_MAX) {
             croak("%s: value (%" UVuf ") exceeds maximum (%u)", "unix_authn", value, UINT32_MAX);
         }
