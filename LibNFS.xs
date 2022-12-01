@@ -803,6 +803,9 @@ static inline void _croak_if_buffer_is_reference( pTHX_ SV* buf_sv ) {
     }
 }
 
+#define _croak_if_uv_exceeds_u32(name, value) \
+    if (value > UINT32_MAX) croak("%s: value (%" UVuf ") exceeds maximum (%" PRIu32 ")", name, value, UINT32_MAX);
+
 // ----------------------------------------------------------------------
 
 static void _utime_ish (pTHX_ int ix, SV* self_sv, SV* path_sv, SV* atime_sv, SV* mtime_sv, SV* cb) {
@@ -981,9 +984,7 @@ static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
         // Thus, u32 is the maximum, despite libnfs’s use of plain int
         // for these values.
         //
-        if (value > UINT32_MAX) {
-            croak("%s: value (%" UVuf ") exceeds maximum (%u)", "unix_authn", value, UINT32_MAX);
-        }
+        _croak_if_uv_exceeds_u32("unix_authn", value);
 
         nums[n] = value;
     }
@@ -995,15 +996,18 @@ static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
 }
 
 #ifdef NLNFS_NFS_SET_READDIR_MAX_BUFFER_SIZE
+
+#define MAX_BUFFER_SIZE_ARRAY_SIZE 2
+#define READDIR_BUFFER_SETTING "readdir_buffer"
+
 static void _set_readdir_max_buffer_size(pTHX_ struct nfs_context* nfs, SV* value_sv) {
 
     uint32_t dircount, maxcount;
 
     if (SvROK(value_sv) && (SvTYPE(SvRV(value_sv)) == SVt_PVAV)) {
-        #define MAX_BUFFER_SIZE_ARRAY_SIZE 2
         AV* av = (AV*) SvRV(value_sv);
         uint32_t nums_count = 1 + av_len(av);
-        if (nums_count != MAX_BUFFER_SIZE_ARRAY_SIZE) croak("“%s” must contain exactly %d numbers", "readdir_buffer", MAX_BUFFER_SIZE_ARRAY_SIZE);
+        if (nums_count != MAX_BUFFER_SIZE_ARRAY_SIZE) croak("“%s” must contain exactly %d numbers", READDIR_BUFFER_SETTING, MAX_BUFFER_SIZE_ARRAY_SIZE);
 
         uint32_t nums[MAX_BUFFER_SIZE_ARRAY_SIZE];
 
@@ -1012,9 +1016,7 @@ static void _set_readdir_max_buffer_size(pTHX_ struct nfs_context* nfs, SV* valu
             assert(svp);
 
             UV value = exs_SvUV(*svp);
-            if (value > UINT32_MAX) {
-                croak("%s: value (%" UVuf ") exceeds maximum (%u)", "readdir_buffer", value, UINT32_MAX);
-            }
+            _croak_if_uv_exceeds_u32(READDIR_BUFFER_SETTING, value);
 
             nums[n] = value;
         }
@@ -1022,13 +1024,10 @@ static void _set_readdir_max_buffer_size(pTHX_ struct nfs_context* nfs, SV* valu
         dircount = nums[0];
         maxcount = nums[1];
     } else if (SvROK(value_sv)) {
-        croak("“%s” must be an array reference or scalar, not %" SVf, "readdir_buffer", value_sv);
+        croak("“%s” must be an array reference or scalar, not %" SVf, READDIR_BUFFER_SETTING, value_sv);
     } else {
         UV value = exs_SvUV(value_sv);
-
-        if (value > UINT32_MAX) {
-            croak("%s: value (%" UVuf ") exceeds maximum (%u)", "readdir_buffer", value, UINT32_MAX);
-        }
+        _croak_if_uv_exceeds_u32(READDIR_BUFFER_SETTING, value);
 
         dircount = value;
         maxcount = value;
@@ -1188,9 +1187,7 @@ set (SV* self_sv, ...)
 
                 UV value = exs_SvUV(value_sv);
 
-                if (value > UINT32_MAX) {
-                    croak("%s: value (%" UVuf ") exceeds maximum (%u)", param, value, UINT32_MAX);
-                }
+                _croak_if_uv_exceeds_u32(param, value);
 
                 U32_SETTINGS[ss].func(perl_nfs->nfs, value);
 
@@ -1235,7 +1232,7 @@ set (SV* self_sv, ...)
             }
 #ifdef NLNFS_NFS_SET_READDIR_MAX_BUFFER_SIZE
 
-            if (!strcmp(param, "readdir_buffer")) {
+            if (!strcmp(param, READDIR_BUFFER_SETTING)) {
                 _set_readdir_max_buffer_size(aTHX_ perl_nfs->nfs, value_sv);
 
                 continue;
