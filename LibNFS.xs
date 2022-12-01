@@ -660,8 +660,6 @@ typedef struct {
 
 static const _int_setting_s INT_SETTINGS[] = {
     { .name = "tcp_syncnt", .func = nfs_set_tcp_syncnt },
-    { .name = "uid", .func = nfs_set_uid },
-    { .name = "gid", .func = nfs_set_gid },
     { .name = "debug", .func = nfs_set_debug },
 #ifdef NLNFS_NFS_SET_AUTO_TRAVERSE_MOUNTS
     { .name = "auto_traverse_mounts", .func = nfs_set_auto_traverse_mounts },
@@ -689,6 +687,8 @@ typedef struct {
 } _u32_setting_s;
 
 static const _u32_setting_s U32_SETTINGS[] = {
+    { .name = "uid", .func = (_lnfs_u32_setter) nfs_set_uid },
+    { .name = "gid", .func = (_lnfs_u32_setter) nfs_set_gid },
     { .name = "pagecache", .func = nfs_set_pagecache },
     { .name = "pagecache_ttl", .func = nfs_set_pagecache_ttl },
     { .name = "readahead", .func = nfs_set_readahead },
@@ -974,7 +974,12 @@ static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
         SV** svp = av_fetch(authn_av, n, 0);
         assert(svp);
 
-        nums[n] = exs_SvUV(*svp);
+        UV value = exs_SvUV(*svp);
+        if (value > UINT32_MAX) {
+            croak("%s: value (%" UVuf ") exceeds maximum (%u)", "unix_authn", value, UINT32_MAX);
+        }
+
+        nums[n] = value;
     }
 
     struct AUTH* auth = libnfs_authunix_create(UNIX_AUTHN_MACHINE_NAME, nums[0], nums[1], nums_count - 2, 2 + nums);
