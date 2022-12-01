@@ -154,6 +154,11 @@ at once. Clobbers (and is clobbered by) C<uid> and C<gid>.
 
 =item * C<readmax>, C<writemax>
 
+=item * C<readdir_buffer> - Sets the maximum buffer size for C<READDIRPLUS>
+(which is used by I<OBJ>->opendir). Can be a two-element arrayref to set
+C<dircount> and C<maxcount> independently or an unsigned integer to set both
+to the same value.
+
 =back
 
 =head2 $old_umask = I<OBJ>->umask( $NEW_UMASK )
