@@ -246,7 +246,6 @@ sub postamble {
 
 .PHONY:
 build-libnfs:
-\tls -la libnfs
 \t'$cmake_path' @cmake_opts -B $build_path -S libnfs
 \t\$(MAKE) -C $build_path install
 MAKE_FRAG
