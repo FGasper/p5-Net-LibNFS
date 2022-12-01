@@ -983,6 +983,50 @@ static void _set_unix_authn(pTHX_ struct nfs_context* nfs, SV* value_sv) {
     nfs_set_auth(nfs, auth);
 }
 
+#ifdef NLNFS_NFS_SET_READDIR_MAX_BUFFER_SIZE
+static void _set_readdir_max_buffer_size(pTHX_ struct nfs_context* nfs, SV* value_sv) {
+
+    uint32_t dircount, maxcount;
+
+    if (SvROK(value_sv) && (SvTYPE(SvRV(value_sv)) == SVt_PVAV)) {
+        #define MAX_BUFFER_SIZE_ARRAY_SIZE 2
+        AV* av = (AV*) SvRV(value_sv);
+        uint32_t nums_count = 1 + av_len(av);
+        if (nums_count != MAX_BUFFER_SIZE_ARRAY_SIZE) croak("“%s” must contain exactly %d numbers", "readdir_buffer", MAX_BUFFER_SIZE_ARRAY_SIZE);
+
+        uint32_t nums[MAX_BUFFER_SIZE_ARRAY_SIZE];
+
+        for (unsigned n=0; n<nums_count; n++) {
+            SV** svp = av_fetch(av, n, 0);
+            assert(svp);
+
+            UV value = exs_SvUV(*svp);
+            if (value > UINT32_MAX) {
+                croak("%s: value (%" UVuf ") exceeds maximum (%u)", "readdir_buffer", value, UINT32_MAX);
+            }
+
+            nums[n] = value;
+        }
+
+        dircount = nums[0];
+        maxcount = nums[1];
+    } else if (SvROK(value_sv)) {
+        croak("“%s” must be an array reference or scalar, not %" SVf, "readdir_buffer", value_sv);
+    } else {
+        UV value = exs_SvUV(value_sv);
+
+        if (value > UINT32_MAX) {
+            croak("%s: value (%" UVuf ") exceeds maximum (%u)", "readdir_buffer", value, UINT32_MAX);
+        }
+
+        dircount = value;
+        maxcount = value;
+    }
+
+    nfs_set_readdir_max_buffer_size(nfs, dircount, maxcount);
+}
+#endif
+
 // ----------------------------------------------------------------------
 
 MODULE = Net::LibNFS        PACKAGE = Net::LibNFS
@@ -1178,6 +1222,14 @@ set (SV* self_sv, ...)
 
                 continue;
             }
+#ifdef NLNFS_NFS_SET_READDIR_MAX_BUFFER_SIZE
+
+            if (!strcmp(param, "readdir_buffer")) {
+                _set_readdir_max_buffer_size(aTHX_ perl_nfs->nfs, value_sv);
+
+                continue;
+            }
+#endif
 
             // string --------------------------------------------------
 

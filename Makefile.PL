@@ -80,6 +80,7 @@ my @checks = (
         'nfs_set_auto_traverse_mounts',
         'nfs_set_nfsport',
         'nfs_set_mountport',
+        'nfs_set_readdir_max_buffer_size',
     ) ),
 );
 
