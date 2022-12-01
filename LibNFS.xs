@@ -1231,7 +1231,7 @@ set (SV* self_sv, ...)
             }
 #ifdef NLNFS_NFS_SET_READDIR_MAX_BUFFER_SIZE
 
-            if (!strcmp(param, "readdir_buffer")) {
+            if (!strcmp(param, READDIR_BUFFER_SETTING)) {
                 _set_readdir_max_buffer_size(aTHX_ perl_nfs->nfs, value_sv);
 
                 continue;
