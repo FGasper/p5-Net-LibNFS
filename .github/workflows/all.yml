@@ -218,7 +218,7 @@ jobs:
         #    version: '12.2'
         #    pkginstall: pkg install -y git cmake p5-ExtUtils-MakeMaker
           - name: openbsd
-            version: '6.9'
+            version: '7.1'
             pkginstall: pkg_add git cmake libnfs p5-ExtUtils-PkgConfig p5-ExtUtils-MakeMaker
 
     steps:
