@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+#include <inttypes.h>
 
 // For some reason sys/time.h causes funky arrow-pointer errors
 // in Strawberry Perl …
