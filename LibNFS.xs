@@ -189,7 +189,7 @@ static void __do_perl_callback_internal(
     perl_cb_s* cb_sp = (perl_cb_s*) private_data;
 
 #ifdef MULTIPLICITY
-    pTHX = cb_sp->aTHX;
+    tTHX aTHX = cb_sp->aTHX;
 #endif
 
     SV* err_sv = NULL;
