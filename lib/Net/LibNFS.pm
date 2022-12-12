@@ -3,7 +3,7 @@ package Net::LibNFS;
 use strict;
 use warnings;
 
-our $VERSION = '0.04_90';
+our $VERSION = '0.05';
 
 =encoding utf-8
 
