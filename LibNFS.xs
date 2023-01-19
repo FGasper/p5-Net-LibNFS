@@ -210,7 +210,10 @@ static void __do_perl_callback_internal(
 
     Safefree(cb_sp);
 
-    if (error) warn_sv(error);
+    if (error) {
+        warn_sv(error);
+        SvREFCNT_dec(error);
+    }
 }
 
 static void _do_perl_rpc_callback (
