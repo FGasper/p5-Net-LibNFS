@@ -1,5 +1,9 @@
 Revision history for Perl extension Net::LibNFS:
 
+0.06
+- Fix off-by-one error in DirEnt
+  (Thank you, rovo89!)
+
 0.05 Mon 12 Dec 2022
 - Attempt better i386 compatibility.
 - Feature-detection added to support different libnfs versions.
