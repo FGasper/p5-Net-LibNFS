@@ -1,6 +1,8 @@
 Revision history for Perl extension Net::LibNFS:
 
 0.06
+- Fix off-by-one error in DirEnt
+  (Thank you, rovo89!)
 - Fix XS typo for Perl 5.42 compatibility.
 
 0.05 Mon 12 Dec 2022

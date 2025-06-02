@@ -2662,9 +2662,9 @@ type (SV* self_sv)
         uid = 6
         gid = 7
         nlink = 8
-        atime_nsec = 13
-        mtime_nsec = 14
-        ctime_nsec = 15
+        atime_nsec = 14
+        mtime_nsec = 15
+        ctime_nsec = 16
     CODE:
         struct nfsdirent* p = exs_structref_ptr(self_sv);
         RETVAL = *( (uint32_t*) ((void*)(p) + DIRENT_OFFSET[3 + ix]) );
