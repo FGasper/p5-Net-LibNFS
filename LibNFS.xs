@@ -2595,7 +2595,7 @@ dev (SV* self_sv)
 
 MODULE = Net::LibNFS        PACKAGE = Net::LibNFS::StatVFS
 
-PROTOTYPES: DISABLESTATVFS64_OFFSET
+PROTOTYPES: DISABLE
 
 UV
 bsize (SV* self_sv)
